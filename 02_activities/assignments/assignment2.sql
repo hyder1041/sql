@@ -35,6 +35,18 @@ each new market date for each customer, or select only the unique market dates p
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
+SELECT customer_id
+,market_date
+,CONCAT('label ',row_number() OVER (PARTITION by customer_id ORDER by market_date)) as customer_visit
+FROM
+	(
+
+		SELECT DISTINCT customer_id,
+		 cp1.market_date
+		from customer_purchases as cp1
+		ORDER by customer_id, market_date
+	);
+
 SELECT distinct customer_id,
  market_date
 , dense_rank() OVER (PARTITION by customer_id ORDER by market_date) as customer_visit
@@ -61,10 +73,9 @@ WHERE customer_visit = 1;
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
 SELECT *
-, count() OVER(PARTITION by customer_id ORDER by product_id ) as product_Purchased_count
+, count(product_id) OVER(PARTITION by customer_id, product_id ORDER by product_id ) as product_Purchased_count
 FROM customer_purchases
 ORDER by customer_id;
-
 
 -- String manipulations
 /* 1. Some product names in the product table have descriptions like "Jar" or "Organic". 
